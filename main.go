@@ -1,40 +1,93 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"strings"
 )
 
-//ref. https://www.geeksforgeeks.org/how-to-reverse-a-string-in-golang/
-func reverse(s string) string {
-	rns := []rune(s) // convert to rune
-	for i, j := 0, len(rns)-1; i < j; i, j = i+1, j-1 {
-
-		// swap the letters of the string,
-		// like first with last and so on.
-		rns[i], rns[j] = rns[j], rns[i]
+func decryptRailFence(cipher string, key int) string {
+	rail := [][]string{}
+	splString := strings.Split(cipher, "")
+	for i := 0; i < key; i++ {
+		rail = append(rail, []string{})
+		for j := 0; j < len(splString); j++ {
+			rail[i] = append(rail[i], "/n")
+		}
 	}
 
-	// return the reversed string.
-	return string(rns)
+	dir_down := true
+	row, col := 0, 0
+
+	for i := 0; i < len(splString); i++ {
+		if row == 0 {
+			dir_down = true
+		}
+		if row == key-1 {
+			dir_down = false
+		}
+		rail[row][col] = "*"
+		col += 1
+		if dir_down {
+			row += 1
+		} else {
+			row -= 1
+		}
+	}
+
+	index := 0
+	for i := 0; i < key; i++ {
+		for j := 0; j < len(splString); j++ {
+			if (rail[i][j] == "*") && (index < len(cipher)) {
+				rail[i][j] = splString[index]
+				index += 1
+			}
+		}
+	}
+
+	result := []string{}
+	row, col = 0, 0
+
+	for i := 0; i < len(splString); i++ {
+		if row == 0 {
+			dir_down = true
+		}
+		if row == key-1 {
+			dir_down = false
+		}
+
+		if rail[row][col] != "*" {
+			result = append(result, rail[row][col])
+			col += 1
+		}
+
+		if dir_down {
+			row += 1
+		} else {
+			row -= 1
+		}
+	}
+
+	return strings.Join(result, "")
 }
 
 func main() {
-	var whatIsIt string
+	listOfCountChar := make(map[string]int)
+	text := "CYtZBsWZaZliYZocWLZlXuZZYWYeYXZsXeZXtXWpXeRYYYd!ZnYeWXoYXasnX,WXWrWPoAdWesnciGenWr"
+	secret := strings.Split(text, "")
 
-	secret := "aWFuZ25vVzpOQU06RU5JTDp0YTpzdTpuaW9K"
-
-	sd, _ := base64.StdEncoding.DecodeString(secret)
-
-	var temp = strings.Split(string(sd), ":")
-
-	for _, s := range temp {
-		whatIsIt = reverse(s) + " " + whatIsIt
+	mostV := 0
+	for i := 0; i < len(secret); i++ {
+		listOfCountChar[secret[i]] += 1
+		if mostV < listOfCountChar[secret[i]] {
+			mostV = listOfCountChar[secret[i]]
+		}
 	}
-	fmt.Println(whatIsIt)
-}
 
-//iangnoW:NAM:ENIL:ta:su:nioJ
-//Wongnai:MAN:LINE:at:us:Join
-//Join us at LINE MAN Wongnai
+	for ch, i := range listOfCountChar {
+		if mostV == i {
+			text = strings.ReplaceAll(text, ch, "")
+		}
+	}
+
+	fmt.Println(decryptRailFence(text, 4))
+}
